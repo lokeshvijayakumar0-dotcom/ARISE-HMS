@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ARISE HMS – AI Health Copilot</title>
+<style>
+:root{--bg:#060b14;--card:#0f1a2b;--line:#1d2b40;--tx:#e6edf7;--mut:#8ea3bf;--cy:#22d3ee;--em:#34d399;--rose:#fb7185;--amb:#fbbf24;--vio:#a78bfa}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(1200px 600px at 10% -10%,#0d2338,transparent),var(--bg);color:var(--tx);font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Tamil",sans-serif}
+header{position:sticky;top:0;z-index:10;background:rgba(6,11,20,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.wrap{max-width:1200px;margin:auto;padding:0 20px}
+.bar{display:flex;align-items:center;gap:16px;height:64px}
+.brand{font-weight:800;font-size:18px;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--cy),var(--em));display:grid;place-items:center;color:#031018;font-weight:900}
+nav{display:flex;gap:4px;overflow-x:auto;margin-left:auto}
+nav button{background:none;border:1px solid transparent;color:var(--mut);padding:8px 12px;border-radius:10px;cursor:pointer;font:inherit;font-weight:600;white-space:nowrap}
+nav button.on{background:var(--card);border-color:var(--line);color:#fff}
+.lang{background:var(--card);border:1px solid var(--line);color:var(--cy);padding:7px 12px;border-radius:10px;cursor:pointer;font:inherit;font-weight:700}
+main{padding:24px 0 40px}
+.tab{display:none}.tab.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px}
+.grid{display:grid;gap:16px;margin-bottom:16px}
+.g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.g2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.lbl{color:var(--mut);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.big{font-size:36px;font-weight:800;font-family:ui-monospace,Menlo,monospace;margin:6px 0 2px}
+.sub{color:var(--mut);font-size:12px}
+.ok{color:var(--em)}.warn{color:var(--amb)}.bad{color:var(--rose)}
+.btn{background:linear-gradient(135deg,var(--cy),var(--em));color:#031018;border:0;border-radius:12px;padding:10px 16px;font-weight:700;cursor:pointer;font:inherit}
+.btn.ghost{background:transparent;color:var(--tx);border:1px solid var(--line)}
+.alert{display:none;background:linear-gradient(90deg,#4c0519,#0f1a2b);border:1px solid var(--rose);border-radius:16px;padding:14px 18px;margin-bottom:16px;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap}
+.alert.on{display:flex}
+canvas{width:100%;height:160px;display:block}
+.chat{height:340px;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:4px}
+.msg{max-width:85%;padding:10px 14px;border-radius:14px;white-space:pre-wrap}
+.me{align-self:flex-end;background:#134e4a}.bot{align-self:flex-start;background:#15233a;border:1px solid var(--line)}
+.row{display:flex;gap:8px;margin-top:12px}
+input[type=text]{flex:1;background:#081220;border:1px solid var(--line);color:var(--tx);border-radius:12px;padding:10px 12px;font:inherit;min-width:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{background:#081220;border:1px solid var(--line);color:var(--mut);border-radius:99px;padding:5px 10px;cursor:pointer;font-size:12px}
+.drop{border:2px dashed var(--line);border-radius:16px;padding:24px;text-align:center;color:var(--mut);cursor:pointer;margin-top:12px}
+.drop:hover{border-color:var(--cy);color:var(--tx)}
+table{width:100%;border-collapse:collapse}
+td,th{padding:9px 6px;border-bottom:1px solid var(--line);text-align:left}
+th{color:var(--mut);font-size:12px;font-weight:600}
+label.ck{display:flex;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.disc{font-size:12px;color:var(--mut);margin-top:24px;text-align:center}
+.hdr{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+@media print{
+  body *{visibility:hidden}
+  #tab-doctor,#tab-doctor *{visibility:visible}
+  #tab-doctor{position:absolute;left:0;top:0;width:100%;display:block!important}
+  #tab-doctor .noprint{display:none!important}
+  body{background:#fff;color:#000}
+  .card{background:#fff;color:#000;border:1px solid #bbb}
+  td,th,.sub,.lbl{color:#333;border-color:#bbb}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap bar">
+    <div class="brand"><div class="logo">♥</div>ARISE <span style="color:var(--em)">HMS</span></div>
+    <nav id="nav">
+      <button data-tab="overview" class="on" data-i18n="t_over">Overview</button>
+      <button data-tab="wrist" data-i18n="t_wrist">Wristband</button>
+      <button data-tab="copilot" data-i18n="t_ai">AI Copilot</button>
+      <button data-tab="labs" data-i18n="t_labs">Labs</button>
+      <button data-tab="doctor" data-i18n="t_doc">Doctor Prep</button>
+      <button data-tab="meds" data-i18n="t_meds">Meds</button>
+    </nav>
+    <button class="lang" id="langBtn">தமிழ்</button>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="alert" id="alert">
+    <div><b data-i18n="alert_t">High heart rate at rest</b> — <span id="alertTxt"></span></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" onclick="go('copilot')" data-i18n="consult">Ask Copilot</button>
+      <button class="btn ghost" onclick="dismissAlert()">✕</button>
+    </div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <section class="tab on" id="tab-overview">
+    <div class="card" style="margin-bottom:16px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px;align-items:center">
+      <div>
+        <div class="lbl" data-i18n="hub">Intelligence Hub</div>
+        <h1 style="margin:6px 0 4px;font-size:28px" data-i18n="welcome">Good morning, Sarah</h1>
+        <p style="margin:0;color:var(--mut);max-width:620px" data-i18n="hero">Your wristband streams heart rate, SpO₂, skin temperature and estimated glucose to your Copilot over WiFi.</p>
+      </div>
+      <button class="btn" onclick="go('wrist')" data-i18n="open">Open live monitor</button>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;border-color:#155e75">
+      <div class="lbl" style="color:var(--cy)">✦ Copilot insight</div>
+      <p style="margin:6px 0 0" id="insight"></p>
+    </div>
+
+    <div class="grid g4">
+      <div class="card"><div class="lbl">Heart rate</div><div class="big"><span data-bind="hr">72</span> <span class="sub">bpm</span></div><div class="sub">7-day baseline 72 · <span id="hrSt" class="ok">Normal</span></div></div>
+      <div class="card"><div class="lbl">SpO₂</div><div class="big"><span data-bind="spo2">98</span><span class="sub">%</span></div><div class="sub">Normal ≥ 95%</div></div>
+      <div class="card"><div class="lbl">Skin temperature</div><div class="big"><span data-bind="temp">98.6</span><span class="sub">°F</span></div><div class="sub">Calibrated</div></div>
+      <div class="card"><div class="lbl">Glucose (estimated)</div><div class="big"><span data-bind="glu">104</span><span class="sub">mg/dL</span></div><div class="sub">Trend estimate · <span id="gluSt" class="ok">Optimal</span></div></div>
+    </div>
+
+    <div class="grid g2">
+      <div class="card"><div class="lbl" style="margin-bottom:8px">Heart rate · last 7 days</div><svg id="sparkHr" viewBox="0 0 300 90" width="100%" height="110"></svg></div>
+      <div class="card"><div class="lbl" style="margin-bottom:8px">Steps · last 7 days</div><svg id="sparkSteps" viewBox="0 0 300 90" width="100%" height="110"></svg></div>
+    </div>
+  </section>
+
+  <!-- WRISTBAND -->
+  <section class="tab" id="tab-wrist">
+    <div class="card" style="margin-bottom:16px">
+      <div class="hdr">
+        <div><div class="lbl">Live ECG · wristband</div><div class="sub" id="syncTxt">● Synced just now</div></div>
+        <button class="btn ghost noprint" onclick="simulateSpike()">Simulate HR spike (demo)</button>
+      </div>
+      <canvas id="ecg"></canvas>
+    </div>
+    <div class="grid g4">
+      <div class="card"><div class="lbl">Heart rate</div><div class="big"><span data-bind="hr">72</span></div><div class="sub">bpm, live</div></div>
+      <div class="card"><div class="lbl">SpO₂</div><div class="big"><span data-bind="spo2">98</span></div><div class="sub">%</div></div>
+      <div class="card"><div class="lbl">Skin temp</div><div class="big"><span data-bind="temp">98.6</span></div><div class="sub">°F</div></div>
+      <div class="card"><div class="lbl">Steps today</div><div class="big"><span data-bind="steps">8,452</span></div><div class="sub">Goal 10,000</div></div>
+    </div>
+  </section>
+
+  <!-- COPILOT -->
+  <section class="tab" id="tab-copilot">
+    <div class="grid g2">
+      <div class="card">
+        <div class="lbl" style="margin-bottom:8px">AI Copilot</div>
+        <div class="chat" id="chat"></div>
+        <div class="chips">
+          <span class="chip" onclick="send(this.textContent)">How is my heart rate today?</span>
+          <span class="chip" onclick="send(this.textContent)">Explain my HbA1c trend</span>
+          <span class="chip" onclick="send(this.textContent)">Did I sleep well?</span>
+          <span class="chip" onclick="send(this.textContent)">Prepare for my doctor visit</span>
+        </div>
+        <div class="row">
+          <input type="text" id="q" placeholder="Ask about your health data…" onkeydown="if(event.key==='Enter')send(this.value)">
+          <button class="btn" onclick="send(document.getElementById('q').value)">Send</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="lbl" style="margin-bottom:8px">Context the Copilot is using</div>
+        <table>
+          <tr><td>Heart rate (live)</td><td data-bind="hr">72</td></tr>
+          <tr><td>Glucose (estimated)</td><td data-bind="glu">104</td></tr>
+          <tr><td>Sleep last night</td><td>7h 32m · good</td></tr>
+          <tr><td>Latest HbA1c</td><td>5.5 %</td></tr>
+          <tr><td>Medications logged</td><td id="medCount">0 / 3 today</td></tr>
+        </table>
+        <p class="sub" style="margin-top:14px">The Copilot explains data and prepares questions. It does not diagnose or change medication.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- LABS -->
+  <section class="tab" id="tab-labs">
+    <div class="grid g2">
+      <div class="card">
+        <div class="lbl" style="margin-bottom:8px">HbA1c trend · target below 5.7 %</div>
+        <svg id="labChart" viewBox="0 0 520 220" width="100%" height="240"></svg>
+      </div>
+      <div class="card">
+        <div class="lbl">Upload lab report</div>
+        <div class="drop" id="drop" onclick="document.getElementById('file').click()">
+          <div style="font-size:24px">⤒</div>
+          <div>Drop a PDF, JPG or PNG here, or click to choose</div>
+          <div class="sub">Max 10 MB</div>
+        </div>
+        <input type="file" id="file" accept=".pdf,.jpg,.jpeg,.png" hidden>
+        <table style="margin-top:14px">
+          <tr><th>Marker</th><th>Result</th><th>Status</th></tr>
+          <tr><td>HbA1c</td><td>5.5 %</td><td class="ok">In range</td></tr>
+          <tr><td>LDL</td><td>118 mg/dL</td><td class="warn">Borderline</td></tr>
+          <tr><td>Hemoglobin</td><td>13.4 g/dL</td><td class="ok">In range</td></tr>
+        </table>
+        <div id="uploadLog" class="sub" style="margin-top:8px"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DOCTOR PREP -->
+  <section class="tab" id="tab-doctor">
+    <div class="card">
+      <div class="hdr">
+        <div><div class="lbl">Visit brief</div><h2 style="margin:4px 0 0">Sarah · Doctor visit summary</h2><div class="sub" id="briefDate"></div></div>
+        <button class="btn noprint" onclick="window.print()">Print / Save as PDF</button>
+      </div>
+      <table>
+        <tr><th>Measure</th><th>Current</th><th>Notes</th></tr>
+        <tr><td>Resting heart rate</td><td data-bind="hr">72 bpm</td><td>Stable over 7 days</td></tr>
+        <tr><td>SpO₂</td><td data-bind="spo2">98 %</td><td>Within normal</td></tr>
+        <tr><td>Glucose (estimated)</td><td data-bind="glu">104 mg/dL</td><td>Wristband estimate, confirm with meter</td></tr>
+        <tr><td>Average steps (7 days)</td><td>8,358</td><td>Below 10,000 goal on 3 days</td></tr>
+        <tr><td>Sleep (last night)</td><td>7h 32m</td><td>Good quality</td></tr>
+        <tr><td>HbA1c</td><td>5.5 %</td><td>Down from 6.1 % over 12 months</td></tr>
+      </table>
+      <h3 style="margin:20px 0 4px">Questions to ask</h3>
+      <label class="ck"><input type="checkbox"> Should my LDL target change given my latest result?</label>
+      <label class="ck"><input type="checkbox"> Is my estimated glucose trend worth confirming with a lab test?</label>
+      <label class="ck"><input type="checkbox"> Is my current activity level right for my goals?</label>
+      <label class="ck"><input type="checkbox"> Any changes to my routine I should make before the next check?</label>
+    </div>
+  </section>
+
+  <!-- MEDS -->
+  <section class="tab" id="tab-meds">
+    <div class="card" style="max-width:640px">
+      <div class="hdr">
+        <div><div class="lbl">Today's routine (sample)</div><div class="sub" id="medProg">0 of 3 done</div></div>
+      </div>
+      <label class="ck"><input type="checkbox" onchange="medToggle(this)"> <span style="flex:1">Metformin 500 mg</span><span class="sub">8:00 AM</span></label>
+      <label class="ck"><input type="checkbox" onchange="medToggle(this)"> <span style="flex:1">Vitamin D3 1000 IU</span><span class="sub">9:00 AM</span></label>
+      <label class="ck"><input type="checkbox" onchange="medToggle(this)"> <span style="flex:1">20-minute evening walk</span><span class="sub">6:30 PM</span></label>
+    </div>
+  </section>
+
+  <p class="disc">ARISE HMS is an informational prototype. It does not provide medical diagnosis or treatment. Wristband glucose values are estimates. In an emergency, call your local emergency number.</p>
+</main>
+
+<script>
+const T={
+  en:{t_over:"Overview",t_wrist:"Wristband",t_ai:"AI Copilot",t_labs:"Labs",t_doc:"Doctor Prep",t_meds:"Meds",
+      hub:"Intelligence Hub",welcome:"Good morning, Sarah",hero:"Your wristband streams heart rate, SpO₂, skin temperature and estimated glucose to your Copilot over WiFi.",
+      open:"Open live monitor",alert_t:"High heart rate at rest",consult:"Ask Copilot"},
+  ta:{t_over:"கண்ணோட்டம்",t_wrist:"மணிக்கட்டு",t_ai:"AI உதவியாளர்",t_labs:"ஆய்வகம்",t_doc:"மருத்துவர் தயாரிப்பு",t_meds:"மருந்துகள்",
+      hub:"நுண்ணறிவு மையம்",welcome:"வணக்கம், Sarah",hero:"உங்கள் வளையல் இதயத் துடிப்பு, SpO₂, உடல் வெப்பம் மற்றும் மதிப்பிடப்பட்ட குளுக்கோஸ் ஆகியவற்றை WiFi வழியாக Copilot-க்கு அனுப்புகிறது.",
+      open:"நேரடி கண்காணிப்பு",alert_t:"ஓய்வில் அதிக இதயத் துடிப்பு",consult:"Copilot-இடம் கேளுங்கள்"}
+};
+let lang="en";
+function applyLang(){
+  document.querySelectorAll("[data-i18n]").forEach(el=>{const k=el.dataset.i18n;el.textContent=T[lang][k]||T.en[k]||el.textContent;});
+  document.getElementById("langBtn").textContent = lang==="en" ? "தமிழ்" : "English";
+  document.documentElement.lang = lang==="en" ? "en" : "ta";
+}
+document.getElementById("langBtn").onclick=()=>{lang=lang==="en"?"ta":"en";applyLang();};
+
+function go(name){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t.id==="tab-"+name));
+  document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("on",b.dataset.tab===name));
+  if(name==="labs")drawLabs();
+  if(name==="doctor")document.getElementById("briefDate").textContent="Generated "+new Date().toLocaleDateString();
+}
+document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>go(b.dataset.tab));
+
+// ---------- Live telemetry ----------
+const S={hr:72,spo2:98,temp:98.6,glu:104,steps:8452};
+let spikeUntil=0, dismissed=false, lastSync=Date.now();
+const fmt={hr:v=>Math.round(v),spo2:v=>Math.round(v),temp:v=>v.toFixed(1),glu:v=>Math.round(v),steps:v=>v.toLocaleString()};
+const rnd=(a,b)=>a+Math.random()*(b-a);
+
+function tick(){
+  const target = Date.now()<spikeUntil ? 132 : 72;
+  S.hr += (target-S.hr)*0.2 + rnd(-1.5,1.5);
+  S.hr = Math.max(55,Math.min(140,S.hr));
+  S.spo2 = Math.max(94,Math.min(100,S.spo2+rnd(-0.3,0.3)));
+  S.temp = 98.5+rnd(-0.2,0.2);
+  S.glu = Math.max(80,Math.min(140,S.glu+rnd(-0.8,0.8)));
+  if(Math.random()<0.25) S.steps += 1;
+  lastSync = Date.now();
+  render();
+}
+function render(){
+  document.querySelectorAll("[data-bind]").forEach(el=>{el.textContent=fmt[el.dataset.bind](S[el.dataset.bind]);});
+  const hrOk = S.hr<=100, gluOk = S.glu>=70 && S.glu<=140;
+  setSt("hrSt",hrOk?"Normal":"Elevated",hrOk?"ok":"bad");
+  setSt("gluSt",gluOk?"Optimal":"Check",gluOk?"ok":"warn");
+  document.getElementById("insight").textContent =
+    "Your resting heart rate is 4 bpm above your 7-day baseline after a short night. A 10-minute walk and water today may help. Tell the Copilot if you feel unwell.";
+  // Alert logic
+  const alertEl=document.getElementById("alert");
+  if(S.hr>110 && !dismissed){
+    alertEl.classList.add("on");
+    document.getElementById("alertTxt").textContent = Math.round(S.hr)+" bpm while resting. If you feel chest pain, dizziness or breathlessness, seek urgent care now.";
+  } else if(S.hr<100){ dismissed=false; alertEl.classList.remove("on"); }
+  const age=Math.round((Date.now()-lastSync)/1000);
+  document.getElementById("syncTxt").textContent = "● Synced "+(age<2?"just now":age+"s ago");
+  document.getElementById("syncTxt").style.color = "var(--em)";
+}
+function setSt(id,txt,cls){const e=document.getElementById(id);e.textContent=txt;e.className=cls;}
+function dismissAlert(){dismissed=true;document.getElementById("alert").classList.remove("on");}
+function simulateSpike(){spikeUntil=Date.now()+15000;dismissed=false;}
+
+// ---------- ECG canvas ----------
+const ecgC=document.getElementById("ecg"), ctx=ecgC.getContext("2d");
+const g=(x,m,s)=>Math.exp(-((x-m)**2)/(2*s*s));
+const ecgV=p=>g(p,.10,.025)*.12 - g(p,.18,.008)*.15 + g(p,.2,.009) - g(p,.23,.009)*.25 + g(p,.42,.05)*.25;
+function drawEcg(){
+  const w=ecgC.width=ecgC.clientWidth, h=ecgC.height=160;
+  ctx.clearRect(0,0,w,h);
+  ctx.strokeStyle="#22d3ee"; ctx.lineWidth=2; ctx.beginPath();
+  const t=performance.now()/1000;
+  for(let x=0;x<=w;x+=2){
+    let p=((x/w)*3 - t*S.hr/60)%1; if(p<0)p+=1;
+    const y=h/2 - ecgV(p)*h*0.4;
+    x?ctx.lineTo(x,y):ctx.moveTo(x,y);
+  }
+  ctx.stroke();
+  requestAnimationFrame(drawEcg);
+}
+
+// ---------- Charts ----------
+function spark(id,data,color){
+  const W=300,H=90,min=Math.min(...data)*0.95,max=Math.max(...data)*1.05;
+  const pts=data.map((v,i)=>[i*(W-20)/(data.length-1)+10, H-10-(v-min)/(max-min)*(H-20)]);
+  const line=pts.map(p=>p.join(",")).join(" ");
+  const dots=pts.map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="3.5" fill="${color}"/>`).join("");
+  document.getElementById(id).innerHTML=`<polyline points="${line}" fill="none" stroke="${color}" stroke-width="2.5"/>${dots}`;
+}
+spark("sparkHr",[70,72,68,75,72,70,72],"#34d399");
+spark("sparkSteps",[8452,7230,9420,6890,10245,7890,8452],"#22d3ee");
+
+function drawLabs(){
+  const vals=[6.1,5.9,5.8,5.6,5.5], labels=["Oct 25","Jan","Apr","Jul","Oct 26"];
+  const W=520,H=220,min=5,max=6.5, X=i=>40+i*(W-80)/4, Y=v=>H-30-(v-min)/(max-min)*(H-50);
+  const pts=vals.map((v,i)=>[X(i),Y(v)]);
+  let s=`<line x1="40" x2="${W-40}" y1="${Y(5.7)}" y2="${Y(5.7)}" stroke="#34d399" stroke-dasharray="6 6" opacity=".6"/>`;
+  s+=`<text x="${W-40}" y="${Y(5.7)-6}" fill="#34d399" font-size="12" text-anchor="end">Target 5.7%</text>`;
+  s+=`<polyline points="${pts.map(p=>p.join(",")).join(" ")}" fill="none" stroke="#22d3ee" stroke-width="3"/>`;
+  pts.forEach((p,i)=>{
+    s+=`<circle cx="${p[0]}" cy="${p[1]}" r="5" fill="#22d3ee"/>`;
+    s+=`<text x="${p[0]}" y="${p[1]-12}" fill="#e6edf7" font-size="12" text-anchor="middle">${vals[i]}%</text>`;
+    s+=`<text x="${p[0]}" y="${H-8}" fill="#8ea3bf" font-size="11" text-anchor="middle">${labels[i]}</text>`;
+  });
+  document.getElementById("labChart").innerHTML=s;
+}
+
+// ---------- Copilot ----------
+const chat=document.getElementById("chat");
+function add(role,text){
+  const d=document.createElement("div");
+  d.className="msg "+(role==="me"?"me":"bot");
+  d.textContent=text; chat.appendChild(d); chat.scrollTop=chat.scrollHeight;
+}
+function reply(q){
+  if(/chest|breath|faint|dizz|emergenc|ambulance/i.test(q))
+    return "If you have chest pain, trouble breathing, fainting or severe dizziness, call your local emergency number now. Do not wait for this app.";
+  if(/heart|pulse|bpm/i.test(q))
+    return `Your heart rate is ${Math.round(S.hr)} bpm right now and has averaged about 72 this week. Short rises during movement are normal. Persistent rises at rest are worth mentioning to your doctor.`;
+  if(/sugar|glucose|a1c|diabet/i.test(q))
+    return `Estimated glucose is ${Math.round(S.glu)} mg/dL from the wristband. Your lab HbA1c fell from 6.1 % to 5.5 % over 12 months. Confirm any reading you are concerned about with a meter or lab test.`;
+  if(/sleep|rest|tired/i.test(q))
+    return "You slept 7h 32m last night, with good quality. Consistent bedtimes usually help most, so keep that in mind for tonight.";
+  if(/lab|report|result|ldl/i.test(q))
+    return "Your latest panel shows HbA1c 5.5 % (in range), hemoglobin 13.4 g/dL (in range) and LDL 118 mg/dL (borderline). You can upload a new report in the Labs tab.";
+  if(/doctor|visit|appointment|prep/i.test(q)){
+    go("doctor");
+    return "I've prepared a visit brief in the Doctor Prep tab, with your current measures, trends and questions. You can print it or save it as a PDF.";
+  }
+  return "I can explain your live vitals, lab trends, sleep and routine, or prepare you for a doctor visit. What would you like to look at?";
+}
+function send(text){
+  text=(text||"").trim(); if(!text) return;
+  add("me",text); document.getElementById("q").value="";
+  setTimeout(()=>add("bot",reply(text)),350);
+}
+add("bot","Hi Sarah. I'm your ARISE Copilot. I can read your wristband and lab data. Ask me anything, or tap a suggestion below.");
+
+// ---------- Labs upload ----------
+const drop=document.getElementById("drop"), file=document.getElementById("file");
+function handleFile(f){
+  const ok=["application/pdf","image/jpeg","image/png"].includes(f.type);
+  if(!ok){document.getElementById("uploadLog").textContent="Please choose a PDF, JPG or PNG file.";return;}
+  if(f.size>10*1024*1024){document.getElementById("uploadLog").textContent="File is larger than 10 MB.";return;}
+  document.getElementById("uploadLog").textContent=`"${f.name}" received. Demo mode: in the full product, markers are extracted and added to this table automatically.`;
+}
+file.onchange=e=>{if(e.target.files[0])handleFile(e.target.files[0]);};
+["dragenter","dragover"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.style.borderColor="var(--cy)";}));
+["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.style.borderColor="";}));
+drop.addEventListener("drop",e=>{if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0]);});
+
+// ---------- Meds ----------
+function medToggle(){
+  const boxes=[...document.querySelectorAll("#tab-meds input[type=checkbox]")];
+  const done=boxes.filter(b=>b.checked).length;
+  document.getElementById("medProg").textContent=`${done} of ${boxes.length} done`;
+  document.getElementById("medCount").textContent=`${done} / ${boxes.length} today`;
+}
+
+// ---------- Boot ----------
+render(); setInterval(tick,1000); drawEcg(); applyLang();
+</script>
+</body>
+</html>
